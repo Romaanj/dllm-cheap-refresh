@@ -56,6 +56,8 @@ Searched for prior work on mask-token attention in dLLMs (re: `mask_binder` find
 - [H003 — What is mask_binder computing?](hypotheses/H003_mask_binder_computation.md) — open exploration (2026-05-17)
 - [H004 — Cascade-respecting per-(layer × position) active set](hypotheses/H004_cascade_active_set.md) — open (2026-05-18); user's core question reframed
 
+- [**Method evolution directions — 2026-05-20**](notes/method_evolution_directions_2026_05_20.md) — candidate menu for advancing E3 cheap refresh (lag-2/multi-signal fusion/adaptive K_t/per-layer trigger/etc.). **Entry point for new-server method-evolution track** (see [[session-state-2026-05-20]] Section 8 for labor split).
+
 ## Decisions
 
 - [D001 — Pivot from Path A to SADC](decisions/D001_pivot_to_sadc.md) — chosen 2026-05-13

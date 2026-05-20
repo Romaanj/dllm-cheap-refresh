@@ -62,9 +62,8 @@ Speedup is wall-time vs the vanilla baseline of the same model.
 \caption{\textbf{Dynamic-dLLM component ablation} on LLaDA-8B-Instruct.
 ``Full'' = paper config (DCU cache + Adaptive Parallel Decoding, $\alpha{=}0.001$, $\beta{=}0.0008$, $\theta_0{=}0.9$).
 ``DCU only'' = same cache setup but with APD disabled ($\texttt{pd\_mode}{=}0$, fixed $\theta{=}0.9$ confidence-threshold parallel commit, matching Fast-dLLM's decoding rule).
-Disabling APD recovers the vanilla-baseline accuracy on HumanEval but eliminates all speedup (in fact runs $1.7{\times}$ slower than vanilla), showing that (i) APD is responsible for the entire $-5\text{pp}$ HumanEval drop, and (ii) DCU alone provides no wall-clock benefit at this scale.
-Speedup is vs the LLaDA-8B-Instruct vanilla baseline.
-\textit{TBD} = GSM8K DCU-only run still in progress.}
+Disabling APD recovers near-vanilla accuracy on \emph{both} benchmarks (GSM8K flex $0.44{\to}0.78$, strict $0.21{\to}0.38$; HumanEval $0.323{\to}0.372$). APD's contribution to wall-time speedup is task-dependent: on HumanEval it adds $+3.10\times$ at a cost of $-5\text{pp}$ accuracy; on GSM8K it adds essentially nothing ($+1.01\times$) while costing $-34\text{pp}$ flex and $-17\text{pp}$ strict. The arithmetic-chain task amplifies APD's threshold-drift errors with no compensating speed gain.
+Speedup is vs the LLaDA-8B-Instruct vanilla baseline.}
 \label{tab:ablation-dynamic-dllm}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -81,12 +80,12 @@ Vanilla baseline (no cache, no APD)         & 0.7801 & 0.4049 & 48764 & $1.00\ti
                                              & 0.372  & 2211   & $1.00\times$ \\
 Dynamic-dLLM full (DCU + APD)               & 0.4412 & 0.2138 & 14069 & $3.47\times$
                                              & 0.323  & 1220   & $1.81\times$ \\
-Dynamic-dLLM, DCU only ($\theta{=}0.9$)     & \textit{TBD} & \textit{TBD} & \textit{TBD} & \textit{TBD}
+Dynamic-dLLM, DCU only ($\theta{=}0.9$)     & \textbf{0.7771} & \textbf{0.3791} & 14194 & $3.44\times$
                                              & \textbf{0.372} & 3786 & $0.58\times$ \\
 \midrule
-$\Delta$ (full $-$ DCU-only) on accuracy    & \multicolumn{2}{c}{\textit{TBD}}      & --- & ---
-                                             & $-0.049$        & --- & --- \\
-$\Delta$ on speedup (full $/$ DCU-only)     & ---  & ---  & ---  & \textit{TBD}
+$\Delta$ (full $-$ DCU-only) on accuracy    & $-0.336$ & $-0.165$ & --- & ---
+                                             & $-0.049$ & --- & --- \\
+$\Delta$ on speedup (full $/$ DCU-only)     & ---  & ---  & ---  & $+1.01\times$
                                              & ---  & ---  & $+3.10\times$ \\
 \bottomrule
 \end{tabular}

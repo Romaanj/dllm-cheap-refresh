@@ -206,15 +206,26 @@ for line in open('SAMPLES.jsonl'):
 - **GPU 2 and 3** are typically running other workloads — only use GPU 0 and 1.
 - **No `cd` chained with `git`** (harness triggers permission prompt).
 
-## 8. Pending actions when new server picks up
+## 8. Division of labor — what runs where
 
-1. **Confirm in-flight job results**:
-   - Sync `results_lmeval_dream_cheap/llada_dynamic_dllm_gsm8k_no_apd/` and `llada_elastic_cache_*/` from source server (or wait for source-server reports)
-   - Update `tab:ablation-dynamic-dllm` TBD cells (GSM8K flex/strict/Wall/Speedup for no-APD)
-2. **Decide D1** (new repo): if confirmed YES, scaffold per Section 5.D1 layout
-3. **Decide D3 additions**: MBPP + MATH-500 worth running?
-4. **Pareto scatter figure**: add `tables/fig_pareto.py` to generate the 2D plot
-5. **Method-section consolidation**: write `paper/method.tex` from existing phase notes
+**Source server** (this server, where session_state was written): owns the **benchmark re-runs and synthesis**.
+- ALL post-D002 HumanEval re-runs (LLaDA Vanilla / Fast-dLLM / Dynamic-dLLM full / Dynamic-dLLM no-APD / Ours; Dream Vanilla / Ours) are running here on GPU 0 + GPU 1 chains. ETA ~4h.
+- Dynamic-dLLM no-APD GSM8K already complete (flex 0.7771, strict 0.3791, 14194s, 3.44× — see [[session-state-2026-05-20]] tab:ablation row).
+- Elastic-Cache GSM8K still running on GPU 0.
+- Results sync to repo (`tables.tex` + this note) as each completes.
+
+**New server** (where this repo is being picked up): owns the **method evolution track**.
+- Read [[method_evolution_directions_2026_05_20]] for candidate next moves on the cheap-refresh algorithm itself.
+- Do NOT re-execute published-baseline HumanEval/GSM8K runs (source server already running them; would waste compute).
+- DO experiment with method variants (adaptive $K_t$, multi-signal fusion, per-layer trigger, etc.). Add new ablation tables in `tables.tex` as needed; don't overwrite headline rows.
+
+### Source-server pending after current chains finish
+
+1. Re-runs complete → update `tab:main` HumanEval columns (will resolve the chat-OFF/gen=256 inconsistency from D002).
+2. `tables.tex` Elastic-Cache GSM8K row (TBD → real numbers).
+3. Add Pareto scatter figure (`tables/fig_pareto.py` from main + ablation tables).
+4. Consolidate method section in `paper/method.tex` from phase notes.
+5. Decide MBPP / MATH-500 scope after main re-runs land.
 
 ## 9. Recent-conversation gotchas (avoid re-stumbling)
 
@@ -227,12 +238,15 @@ for line in open('SAMPLES.jsonl'):
 
 Recommended first prompt on the new server:
 ```
-Read CLAUDE.md, research/INDEX.md, and research/notes/session_state_2026_05_20.md.
-Then sync results from <source-server>:/workspace/inverse_cdf/Fast-dLLM/llada/results_lmeval_dream_cheap/llada_dynamic_dllm_gsm8k_no_apd/ and llada_elastic_cache_*/ if they exist.
-Continue from Section 8 pending actions.
-```
+Read CLAUDE.md, research/INDEX.md, research/notes/session_state_2026_05_20.md,
+research/decisions/D002_chat_template_and_gen_length_unification.md,
+and research/notes/method_evolution_directions_2026_05_20.md.
 
-If decision D1 (new repo) is committed: do that first, then port `research/` over.
+I am picking up the *method evolution* track (Section 8). The source server is
+already running all post-D002 benchmark re-runs and will sync results when done
+— do NOT re-execute those. Pick one candidate from method_evolution_directions
+(D-A / D-B / D-D suggested as first move) and propose an experiment plan.
+```
 
 ---
 
