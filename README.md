@@ -4,38 +4,81 @@ Research on **cheap-refresh inference acceleration for diffusion language models
 
 Our method: **E3** = lag-1 + remaining-unmask budget ($U_t$) + window-4, paired with sparse-Q forward and KV cache, composed with $\theta{=}0.9$ confidence-threshold parallel decoding.
 
-## Entry point
+## Quick start (new environment)
 
-**Start here**: [`research/notes/session_state_2026_05_20.md`](research/notes/session_state_2026_05_20.md) — captures current state, all baseline numbers, in-flight job status, code diagnoses, and open decisions.
+```bash
+git clone https://github.com/Romaanj/dllm-cheap-refresh.git
+cd dllm-cheap-refresh
 
-Then [`research/INDEX.md`](research/INDEX.md) for the full notes index (literature reviews, hypotheses, phase notes, decisions).
+# 1. baselines vendored
+./scripts/clone_baselines.sh
 
-## Current contents (Phase 1 — research artifacts only)
+# 2. python deps
+pip install torch transformers accelerate lm-eval evaluate datasets einops tqdm
 
+# 3. env
+export HF_ALLOW_CODE_EVAL=1
+export HF_DATASETS_TRUST_REMOTE_CODE=true
+
+# 4. resume context with Claude (or read manually)
+claude "Read CLAUDE.md and research/notes/session_state_2026_05_20.md, then continue."
 ```
-research/      # 12 notes, 17 lit reviews, 4 hypotheses, 1 decision + INDEX
-tables.tex     # LaTeX: main full-benchmark table + Dynamic-DLLM component ablation
-CLAUDE.md      # Research workflow rules (used by Claude Code in this repo)
-```
 
-## Planned layout (Phase 2 — code scaffolding)
+## Entry points for context
 
-To be set up when the project moves to a new environment:
+- [`research/notes/session_state_2026_05_20.md`](research/notes/session_state_2026_05_20.md) — full project state, baseline numbers, pending re-runs
+- [`research/decisions/D002_chat_template_and_gen_length_unification.md`](research/decisions/D002_chat_template_and_gen_length_unification.md) — the most recent methodology decision (chat ON + gen=512 for HumanEval)
+- [`research/INDEX.md`](research/INDEX.md) — full notes index
+
+## Layout
 
 ```
 methods/
-  ours/          # E3 cheap refresh: lag-1 + U_t + window-4, sparse-Q forward, KV cache
-  fast_dllm/     # vendored from huggingface/Fast-dLLM @ <sha>
-  dynamic_dllm/  # vendored from ICLR 2026 repo @ <sha>
-  elastic_cache/ # vendored from upstream @ <sha>
-evals/           # unified lm-eval adapters covering all four methods
-results/         # JSON summaries only (raw samples → release artifact)
-paper/           # method.tex, supplementary
-scripts/         # launch helpers (single-GPU runs, sweeps)
+  ours/                  # E3 cheap refresh: code + entry-point evals
+    eval_llada.py        # lm-eval adapter for LLaDA (Ours + all LLaDA-side baselines branching by flags)
+    eval_dream.py        # lm-eval adapter for Dream
+    cheap_e3_inference_llada.py  # main method impl (lag-1 + U_t + window-4)
+    phase14a_cheap_e2e.py        # cascade forward + A_l builder
+    phase9_day3_composed.py      # transfer / pick utilities
+    sparse_block.py              # sparse-Q forward kernel scaffolding
+    gsm8k_attention_sink_drift_eval.py
+    drift_refresh_attention.py
+    scope_incremental_attention.py
+    sparse_attention_prototype.py
+    phase14a_dream.py, phase12_cascade_oracle_dream.py  # Dream-side
+    postprocess_code.py, sanitize.py                     # HumanEval scorer
+    generate.py          # Fast-dLLM-original generation (vendored)
+    model/               # Fast-dLLM-original LLaDA model (vendored)
+  fast_dllm/             # NVlabs/Fast-dLLM (cloned by clone_baselines.sh)
+  dynamic_dllm/          # Dynamic-DLLM (cloned)
+  elastic_cache/         # YuyangSunshine/Elastic-Cache (cloned)
+
+scripts/                 # run_<model>_<method>_<task>.sh wrappers
+  run_llada_vanilla_humaneval.sh
+  run_llada_fast_dllm_humaneval.sh
+  run_llada_dynamic_dllm_humaneval.sh
+  run_llada_dynamic_dllm_humaneval_no_apd.sh
+  run_llada_ours_humaneval.sh
+  run_dream_vanilla_humaneval.sh
+  run_dream_ours_humaneval.sh
+  postprocess_humaneval.sh
+  clone_baselines.sh
+  _common.sh             # shared env + helper functions
+
+research/                # notes, lit reviews, hypotheses, decisions
+  INDEX.md
+  notes/session_state_2026_05_20.md  # ← READ FIRST
+  decisions/D002_chat_template_and_gen_length_unification.md
+  ...
+
+tables.tex               # LaTeX: main results + Dynamic-dLLM ablation
+CLAUDE.md                # Claude Code workflow rules for this project
 ```
 
-See decision D1 in [`research/notes/session_state_2026_05_20.md`](research/notes/session_state_2026_05_20.md) for rationale and vendoring rules.
+## Current re-run set (HumanEval, post-D002)
 
-## Source
+All LLaDA + Dream HumanEval baselines need re-run with chat template ON and gen_length=512. See [D002](research/decisions/D002_chat_template_and_gen_length_unification.md) for protocol details and `scripts/README.md` for parallelization.
 
-This repo replaces work that previously lived inside a fork of `NVlabs/Fast-dLLM`. Vendored baselines should be re-cloned fresh from their respective origins rather than carried over.
+## Source / attribution
+
+Replaces a workspace that lived inside a fork of [NVlabs/Fast-dLLM](https://github.com/NVlabs/Fast-dLLM). The vendored `methods/ours/generate.py` and `methods/ours/model/` are derived from Fast-dLLM. Baselines under `methods/{fast_dllm, dynamic_dllm, elastic_cache}/` are fresh clones from their respective origins (see `scripts/clone_baselines.sh`).

@@ -59,3 +59,5 @@ Searched for prior work on mask-token attention in dLLMs (re: `mask_binder` find
 ## Decisions
 
 - [D001 — Pivot from Path A to SADC](decisions/D001_pivot_to_sadc.md) — chosen 2026-05-13
+
+- [D002 — HumanEval protocol: chat ON + gen=512 unification](decisions/D002_chat_template_and_gen_length_unification.md) — 2026-05-20

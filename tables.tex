@@ -13,6 +13,7 @@
 LLaDA cells use lm-evaluation-harness for generation; Dream cells use a matched custom loop with identical sampling/decoding (lm-eval Dream adapter for HumanEval not yet implemented).
 ``Fast-dLLM'' = prefix \& dual cache + confidence-threshold parallel unmask ($\theta{=}0.9$).
 ``Dynamic-dLLM'' (ICLR 2026) = Dynamic Cache Updating (DCU) + Adaptive Parallel Decoding (APD); paper config $\alpha{=}0.001$, $\beta{=}0.0008$, auto-tuned $B_{\text{layer}}{=}B_{\text{window}}{=}\text{gen\_len}/8$.
+``Elastic-Cache'' = per-layer adaptive cache (drift-triggered refresh at $\gamma{=}0.9$ cosine sim on track-attended positions, $\texttt{track\_num}{=}1$) + window-based query ($\texttt{window\_length}{=}16$, $\texttt{block\_caching}{=}\text{True}$) + fixed-threshold parallel commit ($\theta{=}0.9$).
 ``Ours'' = E3 (lag-1 + $U_t$ + window-4) cheap refresh with sparse-Q forward, KV cache, composed with $\theta{=}0.9$ parallel; LLaDA uses stepped $K{=}384$, Dream uses uniform $K{=}256$.
 Speedup is wall-time vs the vanilla baseline of the same model.
 \textit{TBD} = run in progress at submission time. ``---'' = not measured (Dream GSM8K vanilla at $N{=}100$ custom-protocol: 0.800 flex).}
@@ -29,15 +30,17 @@ Speedup is wall-time vs the vanilla baseline of the same model.
    & flex & strict & Wall (s) & Speedup
    & pass@1   & Wall (s) & Speedup \\
 \midrule
-\multirow{4}{*}{LLaDA-8B-Instruct}
+\multirow{5}{*}{LLaDA-8B-Instruct}
  & Vanilla baseline                  & 0.7801 & 0.4049 & 48764 & $1.00\times$
                                                                   & 0.372         & 2211         & $1.00\times$ \\
  & Fast-dLLM (cache + parallel)      & \textbf{0.7885} & 0.3647 & \textbf{5355} & $\mathbf{9.11\times}$
                                                                   & 0.354         & \textbf{647} & $\mathbf{3.42\times}$ \\
  & Dynamic-dLLM (DCU + APD)          & 0.4412 & 0.2138 & 14069 & $3.47\times$
                                                                   & 0.323         & 1220         & $1.81\times$ \\
+ & Elastic-Cache (per-layer + win)   & \textit{TBD} & \textit{TBD} & \textit{TBD} & \textit{TBD}
+                                                                  & \textbf{0.470} & 1653         & $1.34\times$ \\
  & \textbf{Ours} (cheap + parallel)  & 0.7612 & \textbf{0.4943} & 10878 & $4.48\times$
-                                                                  & \textbf{0.427} & 899          & $2.46\times$ \\
+                                                                  & 0.427         & 899          & $\mathbf{2.46\times}$ \\
 \midrule
 \multirow{2}{*}{Dream-v0-Instruct-7B}
  & Vanilla baseline                  & 0.7832 & 0.7809 & 41860 & $1.00\times$
