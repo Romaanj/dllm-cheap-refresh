@@ -1,0 +1,90 @@
+% -----------------------------------------------------------------------------
+% Full-benchmark results — LLaDA-8B + Dream-7B
+% GSM8K 5-shot (full N=1319, flex + strict) and HumanEval 0-shot (full N=164)
+% Combined into one table.
+% Compile: pdflatex with packages {booktabs, multirow}
+% -----------------------------------------------------------------------------
+
+\begin{table}[t]
+\centering
+\caption{Full-benchmark results.
+\textbf{GSM8K} — 5-shot, $N{=}1319$ (lm-evaluation-harness, chat-template). Two metrics: \emph{flex} = flexible-extract (any trailing number); \emph{strict} = strict-match ($\texttt{\#\#\#\#}$ format).
+\textbf{HumanEval} — 0-shot, $N{=}164$, pass@1 via reference \texttt{postprocess\_code.py} (\texttt{sanitize} + \texttt{hf\_evaluate code\_eval}).
+LLaDA cells use lm-evaluation-harness for generation; Dream cells use a matched custom loop with identical sampling/decoding (lm-eval Dream adapter for HumanEval not yet implemented).
+``Fast-dLLM'' = prefix \& dual cache + confidence-threshold parallel unmask ($\theta{=}0.9$).
+``Dynamic-dLLM'' (ICLR 2026) = Dynamic Cache Updating (DCU) + Adaptive Parallel Decoding (APD); paper config $\alpha{=}0.001$, $\beta{=}0.0008$, auto-tuned $B_{\text{layer}}{=}B_{\text{window}}{=}\text{gen\_len}/8$.
+``Ours'' = E3 (lag-1 + $U_t$ + window-4) cheap refresh with sparse-Q forward, KV cache, composed with $\theta{=}0.9$ parallel; LLaDA uses stepped $K{=}384$, Dream uses uniform $K{=}256$.
+Speedup is wall-time vs the vanilla baseline of the same model.
+\textit{TBD} = run in progress at submission time. ``---'' = not measured (Dream GSM8K vanilla at $N{=}100$ custom-protocol: 0.800 flex).}
+\label{tab:main}
+\small                            % shrink font (no extra package needed)
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llccccccc}
+\toprule
+\multirow{2}{*}{Model} & \multirow{2}{*}{Method}
+   & \multicolumn{4}{c}{GSM8K (5-shot, $N{=}1319$)}
+   & \multicolumn{3}{c}{HumanEval (0-shot, $N{=}164$)} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-9}
+   &
+   & flex & strict & Wall (s) & Speedup
+   & pass@1   & Wall (s) & Speedup \\
+\midrule
+\multirow{4}{*}{LLaDA-8B-Instruct}
+ & Vanilla baseline                  & 0.7801 & 0.4049 & 48764 & $1.00\times$
+                                                                  & 0.372         & 2211         & $1.00\times$ \\
+ & Fast-dLLM (cache + parallel)      & \textbf{0.7885} & 0.3647 & \textbf{5355} & $\mathbf{9.11\times}$
+                                                                  & 0.354         & \textbf{647} & $\mathbf{3.42\times}$ \\
+ & Dynamic-dLLM (DCU + APD)          & 0.4412 & 0.2138 & 14069 & $3.47\times$
+                                                                  & 0.323         & 1220         & $1.81\times$ \\
+ & \textbf{Ours} (cheap + parallel)  & 0.7612 & \textbf{0.4943} & 10878 & $4.48\times$
+                                                                  & \textbf{0.427} & 899          & $2.46\times$ \\
+\midrule
+\multirow{2}{*}{Dream-v0-Instruct-7B}
+ & Vanilla baseline                  & 0.7832 & 0.7809 & 41860 & $1.00\times$
+                                                                  & 0.506 & 1935 & $1.00\times$ \\
+ & \textbf{Ours} (cheap + parallel)  & 0.7309 & 0.7066 & \textbf{5494} & $\mathbf{7.62\times}$
+                                                                  & \textbf{0.524} & \textbf{735} & $\mathbf{2.63\times}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% -----------------------------------------------------------------------------
+% Ablation: Dynamic-dLLM DCU vs DCU+APD on LLaDA-8B-Instruct
+% Disentangles which component (DCU cache or APD threshold-drift decoding)
+% drives the accuracy / speed trade-off.
+% -----------------------------------------------------------------------------
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Dynamic-dLLM component ablation} on LLaDA-8B-Instruct.
+``Full'' = paper config (DCU cache + Adaptive Parallel Decoding, $\alpha{=}0.001$, $\beta{=}0.0008$, $\theta_0{=}0.9$).
+``DCU only'' = same cache setup but with APD disabled ($\texttt{pd\_mode}{=}0$, fixed $\theta{=}0.9$ confidence-threshold parallel commit, matching Fast-dLLM's decoding rule).
+Disabling APD recovers the vanilla-baseline accuracy on HumanEval but eliminates all speedup (in fact runs $1.7{\times}$ slower than vanilla), showing that (i) APD is responsible for the entire $-5\text{pp}$ HumanEval drop, and (ii) DCU alone provides no wall-clock benefit at this scale.
+Speedup is vs the LLaDA-8B-Instruct vanilla baseline.
+\textit{TBD} = GSM8K DCU-only run still in progress.}
+\label{tab:ablation-dynamic-dllm}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccccc}
+\toprule
+\multirow{2}{*}{Variant}
+   & \multicolumn{4}{c}{GSM8K (5-shot, $N{=}1319$)}
+   & \multicolumn{3}{c}{HumanEval (0-shot, $N{=}164$)} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-8}
+   & flex & strict & Wall (s) & Speedup
+   & pass@1 & Wall (s) & Speedup \\
+\midrule
+Vanilla baseline (no cache, no APD)         & 0.7801 & 0.4049 & 48764 & $1.00\times$
+                                             & 0.372  & 2211   & $1.00\times$ \\
+Dynamic-dLLM full (DCU + APD)               & 0.4412 & 0.2138 & 14069 & $3.47\times$
+                                             & 0.323  & 1220   & $1.81\times$ \\
+Dynamic-dLLM, DCU only ($\theta{=}0.9$)     & \textit{TBD} & \textit{TBD} & \textit{TBD} & \textit{TBD}
+                                             & \textbf{0.372} & 3786 & $0.58\times$ \\
+\midrule
+$\Delta$ (full $-$ DCU-only) on accuracy    & \multicolumn{2}{c}{\textit{TBD}}      & --- & ---
+                                             & $-0.049$        & --- & --- \\
+$\Delta$ on speedup (full $/$ DCU-only)     & ---  & ---  & ---  & \textit{TBD}
+                                             & ---  & ---  & $+3.10\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
