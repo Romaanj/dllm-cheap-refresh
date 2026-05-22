@@ -1,0 +1,129 @@
+{
+  "results": {
+    "humaneval": {
+      "alias": "humaneval",
+      "pass@1,create_test": 0.0,
+      "pass@1_stderr,create_test": 0.0
+    }
+  },
+  "group_subtasks": {
+    "humaneval": []
+  },
+  "configs": {
+    "humaneval": {
+      "task": "humaneval",
+      "dataset_path": "openai/openai_humaneval",
+      "test_split": "test",
+      "doc_to_text": "{{prompt}}",
+      "doc_to_target": "{{test}}\ncheck({{entry_point}})",
+      "unsafe_code": true,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] = None):\n    global compute_\n    assert k is not None\n    if isinstance(k, int):\n        k = [k]\n    res = compute_.compute(\n        references=references,\n        predictions=predictions,\n        k=k,\n    )\n    return res[0]\n",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "k": [
+            1
+          ]
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "\nclass",
+          "\ndef",
+          "\n#",
+          "\nif",
+          "\nprint"
+        ],
+        "max_gen_toks": 1024,
+        "do_sample": false
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "create_test",
+          "filter": [
+            {
+              "function": "custom",
+              "filter_fn": "<function build_predictions at 0x7f0524230b80>"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    }
+  },
+  "versions": {
+    "humaneval": 1.0
+  },
+  "n-shot": {
+    "humaneval": 0
+  },
+  "higher_is_better": {
+    "humaneval": {
+      "pass_at_k": true
+    }
+  },
+  "n-samples": {
+    "humaneval": {
+      "original": 164,
+      "effective": 164
+    }
+  },
+  "config": {
+    "model": "llada_dist",
+    "model_args": "model_path=GSAI-ML/LLaDA-8B-Instruct,gen_length=512,steps=32,window_length=16,threshold=0.9,gamma=0.9,track_num=1,block_caching=True,show_speed=True",
+    "batch_size": "1",
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": null,
+  "date": 1779255784.5981016,
+  "pretty_env_info": "PyTorch version: 2.4.1+cu121\nIs debug build: False\nCUDA used to build PyTorch: 12.1\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.3 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nClang version: Could not collect\nCMake version: version 3.26.4\nLibc version: glibc-2.35\n\nPython version: 3.10.13 (main, Sep 11 2023, 13:44:35) [GCC 11.2.0] (64-bit runtime)\nPython platform: Linux-5.4.0-216-generic-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration: \nGPU 0: NVIDIA A100-PCIE-40GB\nGPU 1: NVIDIA A100-PCIE-40GB\nGPU 2: NVIDIA A100-PCIE-40GB\nGPU 3: NVIDIA A100-PCIE-40GB\n\nNvidia driver version: 570.169\ncuDNN version: Could not collect\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                       x86_64\nCPU op-mode(s):                     32-bit, 64-bit\nAddress sizes:                      48 bits physical, 48 bits virtual\nByte Order:                         Little Endian\nCPU(s):                             64\nOn-line CPU(s) list:                0-63\nVendor ID:                          AuthenticAMD\nModel name:                         AMD EPYC 75F3 32-Core Processor\nCPU family:                         25\nModel:                              1\nThread(s) per core:                 1\nCore(s) per socket:                 32\nSocket(s):                          2\nStepping:                           1\nFrequency boost:                    enabled\nCPU max MHz:                        2950.0000\nCPU min MHz:                        1500.0000\nBogoMIPS:                           5899.49\nFlags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 pcid sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 invpcid_single hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold v_vmsave_vmload vgif umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca\nVirtualization:                     AMD-V\nL1d cache:                          2 MiB (64 instances)\nL1i cache:                          2 MiB (64 instances)\nL2 cache:                           32 MiB (64 instances)\nL3 cache:                           512 MiB (16 instances)\nNUMA node(s):                       2\nNUMA node0 CPU(s):                  0-31\nNUMA node1 CPU(s):                  32-63\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit:        Not affected\nVulnerability L1tf:                 Not affected\nVulnerability Mds:                  Not affected\nVulnerability Meltdown:             Not affected\nVulnerability Mmio stale data:      Not affected\nVulnerability Retbleed:             Not affected\nVulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:           Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP disabled; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                Not affected\nVulnerability Tsx async abort:      Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==1.26.3\n[pip3] optree==0.10.0\n[pip3] torch==2.4.1+cu121\n[pip3] torchaudio==2.4.1+cu121\n[pip3] torchelastic==0.2.2\n[pip3] torchvision==0.19.1+cu121\n[pip3] triton==3.0.0\n[conda] blas                      1.0                         mkl  \n[conda] ffmpeg                    4.3                  hf484d3e_0    pytorch\n[conda] libjpeg-turbo             2.0.0                h9bf148f_0    pytorch\n[conda] mkl                       2023.1.0         h213fc3f_46344  \n[conda] mkl-service               2.4.0           py310h5eee18b_1  \n[conda] mkl_fft                   1.3.8           py310h5eee18b_0  \n[conda] mkl_random                1.2.4           py310hdb19cb5_0  \n[conda] numpy                     1.26.3          py310h5f9d8c6_0  \n[conda] numpy-base                1.26.3          py310hb5e798b_0  \n[conda] optree                    0.10.0                   pypi_0    pypi\n[conda] pytorch-cuda              12.1                 ha16c6d3_5    pytorch\n[conda] pytorch-mutex             1.0                        cuda    pytorch\n[conda] torch                     2.4.1+cu121              pypi_0    pypi\n[conda] torchaudio                2.4.1+cu121              pypi_0    pypi\n[conda] torchelastic              0.2.2                    pypi_0    pypi\n[conda] torchvision               0.19.1+cu121             pypi_0    pypi\n[conda] triton                    3.0.0                    pypi_0    pypi",
+  "transformers_version": "4.49.0",
+  "upper_git_hash": "8c7beabfff847a7ff4252562309680b66c820d67",
+  "tokenizer_pad_token": [
+    "<|endoftext|>",
+    "126081"
+  ],
+  "tokenizer_eos_token": [
+    "<|endoftext|>",
+    "126081"
+  ],
+  "tokenizer_bos_token": [
+    "<|startoftext|>",
+    "126080"
+  ],
+  "eot_token_id": null,
+  "max_length": 4096,
+  "task_hashes": {
+    "humaneval": "c122632f0bdffdd0162cc8033a879dfe9d3b35e82c52eda6a767069e0a2beb40"
+  },
+  "model_source": "llada_dist",
+  "model_name": "GSAI-ML/LLaDA-8B-Instruct",
+  "model_name_sanitized": "GSAI-ML__LLaDA-8B-Instruct",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 7073416.569803546,
+  "end_time": 7075119.994713131,
+  "total_evaluation_time_seconds": "1703.4249095851555"
+}
